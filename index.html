@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First Union Movers Calculator</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --accent: #0f172a;
+      --good: #dcfce7;
+      --good-text: #166534;
+      --warn: #fef3c7;
+      --warn-text: #92400e;
+      --bad: #fee2e2;
+      --bad-text: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: inline-block;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    h1 { margin: 0; font-size: 30px; }
+    .sub { color: var(--muted); margin-top: 6px; }
+    .badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+      margin-bottom: 18px;
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 14px;
+    }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .field input, .field select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 16px;
+      background: white;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      gap: 12px;
+    }
+    .switch-row small { color: var(--muted); display: block; margin-top: 4px; }
+    .summary-sticky {
+      position: sticky;
+      top: 16px;
+    }
+    .money-box {
+      background: var(--accent);
+      color: white;
+      border-radius: 24px;
+      padding: 20px;
+      margin-top: 12px;
+    }
+    .money-box .label { color: #cbd5e1; font-size: 14px; margin-bottom: 6px; }
+    .money-box .value { font-size: 38px; font-weight: 800; }
+    .soft {
+      background: #f8fafc;
+      border-radius: 18px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      font-size: 15px;
+    }
+    .row span:last-child { font-weight: 700; }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 16px 0;
+    }
+    .muted { color: var(--muted); font-size: 13px; }
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .hide { display: none; }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .summary-sticky { position: static; }
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 24px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .money-box .value { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="brand">First Union Movers</div>
+        <h1>Moving Cost Calculator</h1>
+        <div class="sub">Mobile estimator for internal cost, margin, and final customer price.</div>
+      </div>
+      <div id="marginBadge" class="badge">Actual Margin: 0.0%</div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <h2>Truck and Travel</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="truckType">Truck Type</label>
+              <select id="truckType">
+                <option value="own">Own Truck</option>
+                <option value="rental">Rental Truck</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="moveDays">Move Days</label>
+              <input id="moveDays" type="number" step="1" value="1" />
+            </div>
+          </div>
+
+          <div id="rentalFields" class="grid-2 hide" style="margin-top:14px;">
+            <div class="field">
+              <label for="rentalPerDay">Rental Cost Per Day</label>
+              <input id="rentalPerDay" type="number" step="0.01" value="150" />
+            </div>
+            <div class="field">
+              <label>Rental Mile Charge</label>
+              <input value="$0.19 / mile" disabled />
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top:14px;">
+            <div class="field">
+              <label for="miles">Total Miles</label>
+              <input id="miles" type="number" step="0.01" value="100" />
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top:14px;">
+            <div class="switch-row">
+              <div>
+                <strong>Driver Mileage Pay</strong>
+                <small>Driver gets $0.65 per mile</small>
+              </div>
+              <input id="driverOnMileage" type="checkbox" checked />
+            </div>
+            <div class="switch-row">
+              <div>
+                <strong>Helper Rides With Driver</strong>
+                <small>Helper gets $0.25 per mile</small>
+              </div>
+              <input id="helperRidesWithDriver" type="checkbox" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Fuel</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="gasPrice">Average Gas Price Per Gallon</label>
+              <input id="gasPrice" type="number" step="0.01" value="4.80" />
+            </div>
+            <div class="field">
+              <label for="truckMpg">Truck MPG</label>
+              <input id="truckMpg" type="number" step="0.01" value="10" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Labor</h2>
+          <div class="section-title">Loading</div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="loadingExtraMovers">Loading Extra Movers</label>
+              <input id="loadingExtraMovers" type="number" step="1" value="1" />
+            </div>
+            <div class="field">
+              <label for="loadingHours">Loading Hours</label>
+              <input id="loadingHours" type="number" step="0.01" value="2" />
+            </div>
+          </div>
+          <div class="muted" style="margin-top:8px;">Foreman is always included at $27/hour. Extra movers are $22/hour each.</div>
+          <hr />
+          <div class="section-title">Unloading</div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="unloadingExtraMovers">Unloading Extra Movers</label>
+              <input id="unloadingExtraMovers" type="number" step="1" value="1" />
+            </div>
+            <div class="field">
+              <label for="unloadingHours">Unloading Hours</label>
+              <input id="unloadingHours" type="number" step="0.01" value="2" />
+            </div>
+          </div>
+          <div class="muted" style="margin-top:8px;">Foreman is always included at $27/hour. Extra movers are $22/hour each.</div>
+        </div>
+
+        <div class="card">
+          <h2>Hotel and Extras</h2>
+          <div class="switch-row">
+            <div>
+              <strong>Include Hotel Cost</strong>
+              <small>Hotel cost is calculated from separate hotel nights</small>
+            </div>
+            <input id="hotelEnabled" type="checkbox" checked />
+          </div>
+          <div class="grid-3" style="margin-top:14px;">
+            <div class="field">
+              <label for="hotelNights">Hotel Nights</label>
+              <input id="hotelNights" type="number" step="1" value="1" />
+            </div>
+            <div class="field">
+              <label for="hotelPerNight">Hotel Cost Per Night</label>
+              <input id="hotelPerNight" type="number" step="0.01" value="100" />
+            </div>
+            <div class="field">
+              <label for="additionalCharges">Additional Charges</label>
+              <input id="additionalCharges" type="number" step="0.01" value="0" />
+            </div>
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label for="notes">Notes</label>
+            <textarea id="notes" placeholder="Optional notes for this estimate"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card summary-sticky">
+          <h2>Summary</h2>
+          <div class="field">
+            <label for="pricingMode">Pricing Mode</label>
+            <select id="pricingMode">
+              <option value="target-margin">Price from Target Margin</option>
+              <option value="manual-price">Manual Sales Price</option>
+            </select>
+          </div>
+
+          <div id="targetMarginWrap" class="field" style="margin-top:14px;">
+            <label for="targetMarginPct">Target Margin %</label>
+            <input id="targetMarginPct" type="number" step="0.1" value="30" />
+            <div class="muted" style="margin-top:6px;">Final customer price is calculated from margin, not markup.</div>
+          </div>
+
+          <div id="manualPriceWrap" class="field hide" style="margin-top:14px;">
+            <label for="manualSalesPrice">Manual Sales Price</label>
+            <input id="manualSalesPrice" type="number" step="0.01" value="0" />
+            <div class="muted" style="margin-top:6px;">Enter your own customer price and the calculator will show the actual margin.</div>
+          </div>
+
+          <div class="soft">
+            <div class="row"><span>Internal Cost</span><span id="internalCost">$0.00</span></div>
+            <div class="row" id="targetPriceRow"><span>Price from Target Margin</span><span id="targetMarginPrice">$0.00</span></div>
+            <div class="row"><span>Profit</span><span id="profit">$0.00</span></div>
+            <div class="row"><span>Actual Margin</span><span id="actualMargin">0.0%</span></div>
+            <div class="row"><span>Markup</span><span id="markup">0.0%</span></div>
+          </div>
+
+          <div class="money-box">
+            <div class="label" id="salesPriceLabel">Suggested Sales Price</div>
+            <div class="value" id="salesPrice">$0.00</div>
+          </div>
+
+          <hr />
+
+          <div class="row"><span>Rental Cost</span><span id="rentalCost">$0.00</span></div>
+          <div class="row"><span>Rental Mile Charge</span><span id="rentalMileageCost">$0.00</span></div>
+          <div class="row"><span>Driver Mileage Pay</span><span id="driverMileagePay">$0.00</span></div>
+          <div class="row"><span>Helper Mileage Pay</span><span id="helperMileagePay">$0.00</span></div>
+          <div class="row"><span>Fuel Cost</span><span id="gasCost">$0.00</span></div>
+          <div class="row"><span>Loading Foreman</span><span id="loadingForemanCost">$0.00</span></div>
+          <div class="row"><span>Loading Helpers</span><span id="loadingHelpersCost">$0.00</span></div>
+          <div class="row"><span>Unloading Foreman</span><span id="unloadingForemanCost">$0.00</span></div>
+          <div class="row"><span>Unloading Helpers</span><span id="unloadingHelpersCost">$0.00</span></div>
+          <div class="row"><span>Hotel</span><span id="hotelCost">$0.00</span></div>
+          <div class="row"><span>Additional Charges</span><span id="additionalChargesView">$0.00</span></div>
+
+          <div id="notesBlock" class="hide">
+            <hr />
+            <div class="section-title">Notes</div>
+            <div id="notesView" style="font-size:14px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ids = [
+      'truckType','moveDays','rentalPerDay','miles','driverOnMileage','helperRidesWithDriver',
+      'gasPrice','truckMpg','loadingExtraMovers','loadingHours','unloadingExtraMovers','unloadingHours',
+      'hotelEnabled','hotelNights','hotelPerNight','additionalCharges','targetMarginPct','manualSalesPrice',
+      'pricingMode','notes'
+    ];
+
+    const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+
+    function n(v) {
+      const x = Number(v);
+      return Number.isFinite(x) ? x : 0;
+    }
+
+    function money(v) {
+      if (!Number.isFinite(v)) return '$0.00';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+    }
+
+    function pct(v) {
+      if (!Number.isFinite(v)) return '0.0%';
+      return (v * 100).toFixed(1) + '%';
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function updateVisibility() {
+      const rental = el.truckType.value === 'rental';
+      document.getElementById('rentalFields').classList.toggle('hide', !rental);
+
+      const manual = el.pricingMode.value === 'manual-price';
+      document.getElementById('manualPriceWrap').classList.toggle('hide', !manual);
+      document.getElementById('targetMarginWrap').classList.toggle('hide', manual);
+      document.getElementById('targetPriceRow').classList.toggle('hide', manual);
+      document.getElementById('salesPriceLabel').textContent = manual ? 'Manual Sales Price' : 'Suggested Sales Price';
+    }
+
+    function recalc() {
+      updateVisibility();
+
+      const FOREMAN_RATE = 27;
+      const HELPER_RATE = 22;
+      const DRIVER_PAY_PER_MILE = 0.65;
+      const HELPER_RIDE_PAY_PER_MILE = 0.25;
+      const RENTAL_MILE_CHARGE = 0.19;
+
+      const days = n(el.moveDays.value);
+      const rentalPerDay = n(el.rentalPerDay.value);
+      const miles = n(el.miles.value);
+      const gasPrice = n(el.gasPrice.value);
+      const mpg = Math.max(n(el.truckMpg.value), 0.0001);
+      const loadingExtraMovers = n(el.loadingExtraMovers.value);
+      const loadingHours = n(el.loadingHours.value);
+      const unloadingExtraMovers = n(el.unloadingExtraMovers.value);
+      const unloadingHours = n(el.unloadingHours.value);
+      const hotelNights = n(el.hotelNights.value);
+      const hotelPerNight = n(el.hotelPerNight.value);
+      const additionalCharges = n(el.additionalCharges.value);
+      const targetMargin = n(el.targetMarginPct.value) / 100;
+      const manualSalesPrice = n(el.manualSalesPrice.value);
+
+      const rentalCost = el.truckType.value === 'rental' ? days * rentalPerDay : 0;
+      const rentalMileageCost = el.truckType.value === 'rental' ? miles * RENTAL_MILE_CHARGE : 0;
+      const driverMileagePay = el.driverOnMileage.checked ? miles * DRIVER_PAY_PER_MILE : 0;
+      const helperMileagePay = el.helperRidesWithDriver.checked ? miles * HELPER_RIDE_PAY_PER_MILE : 0;
+      const gasCost = (miles / mpg) * gasPrice;
+      const loadingForemanCost = loadingHours * FOREMAN_RATE;
+      const loadingHelpersCost = loadingExtraMovers * loadingHours * HELPER_RATE;
+      const unloadingForemanCost = unloadingHours * FOREMAN_RATE;
+      const unloadingHelpersCost = unloadingExtraMovers * unloadingHours * HELPER_RATE;
+      const hotelCost = el.hotelEnabled.checked ? hotelNights * hotelPerNight : 0;
+
+      const internalCost = rentalCost + rentalMileageCost + driverMileagePay + helperMileagePay + gasCost +
+        loadingForemanCost + loadingHelpersCost + unloadingForemanCost + unloadingHelpersCost + hotelCost + additionalCharges;
+
+      const safeMargin = Math.min(Math.max(targetMargin, 0), 0.95);
+      const targetMarginPrice = internalCost / (1 - safeMargin);
+      const salesPrice = el.pricingMode.value === 'manual-price' ? manualSalesPrice : targetMarginPrice;
+      const profit = salesPrice - internalCost;
+      const actualMargin = salesPrice > 0 ? profit / salesPrice : 0;
+      const markup = internalCost > 0 ? profit / internalCost : 0;
+
+      setText('internalCost', money(internalCost));
+      setText('targetMarginPrice', money(targetMarginPrice));
+      setText('profit', money(profit));
+      setText('actualMargin', pct(actualMargin));
+      setText('markup', pct(markup));
+      setText('salesPrice', money(salesPrice));
+      setText('rentalCost', money(rentalCost));
+      setText('rentalMileageCost', money(rentalMileageCost));
+      setText('driverMileagePay', money(driverMileagePay));
+      setText('helperMileagePay', money(helperMileagePay));
+      setText('gasCost', money(gasCost));
+      setText('loadingForemanCost', money(loadingForemanCost));
+      setText('loadingHelpersCost', money(loadingHelpersCost));
+      setText('unloadingForemanCost', money(unloadingForemanCost));
+      setText('unloadingHelpersCost', money(unloadingHelpersCost));
+      setText('hotelCost', money(hotelCost));
+      setText('additionalChargesView', money(additionalCharges));
+
+      const badge = document.getElementById('marginBadge');
+      badge.textContent = 'Actual Margin: ' + pct(actualMargin);
+      if (actualMargin < 0.2) {
+        badge.style.background = 'var(--bad)';
+        badge.style.color = 'var(--bad-text)';
+      } else if (actualMargin < 0.3) {
+        badge.style.background = 'var(--warn)';
+        badge.style.color = 'var(--warn-text)';
+      } else {
+        badge.style.background = 'var(--good)';
+        badge.style.color = 'var(--good-text)';
+      }
+
+      const notes = el.notes.value.trim();
+      document.getElementById('notesBlock').classList.toggle('hide', !notes);
+      document.getElementById('notesView').textContent = notes;
+    }
+
+    ids.forEach(id => {
+      const node = el[id];
+      const evt = node.type === 'checkbox' || node.tagName === 'SELECT' ? 'change' : 'input';
+      node.addEventListener(evt, recalc);
+      if (evt !== 'change') node.addEventListener('change', recalc);
+    });
+
+    recalc();
+  </script>
+</body>
+</html>
